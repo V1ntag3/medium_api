@@ -13,10 +13,6 @@ import (
 
 const SecretKey = "iaoiwjdaojwdoiciwoeinow"
 
-func Hello(c *fiber.Ctx) error {
-	return c.SendString("Hello World!!")
-}
-
 func Register(c *fiber.Ctx) error {
 
 	var data map[string]string
@@ -130,4 +126,91 @@ func Login(c *fiber.Ctx) error {
 	// 	"Token":      token,
 	// 	"ExpirateAt": utilities.DateTimeNowAddHours(24),
 	// })
+}
+
+func Profile(c *fiber.Ctx) error {
+	cookie := c.Cookies("jwt")
+
+	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SecretKey), nil
+	})
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+	claims := token.Claims.(*jwt.StandardClaims)
+
+	var user models.User
+
+	database.DB.Where("id = ?", claims.Issuer).First(&user)
+
+	return c.JSON(user)
+}
+
+func Logout(c *fiber.Ctx) error {
+
+	cookie := c.Cookies("jwt")
+
+	_, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SecretKey), nil
+	})
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+
+	cookieLogout := fiber.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Expires:  utilities.DateTimeNowAddHours(-24),
+		HTTPOnly: true,
+	}
+
+	c.Cookie(&cookieLogout)
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+	})
+
+}
+
+func Delete(c *fiber.Ctx) error {
+
+	cookie := c.Cookies("jwt")
+
+	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SecretKey), nil
+	})
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+
+	claims := token.Claims.(*jwt.StandardClaims)
+
+	var user models.User
+
+	database.DB.Where("id = ?", claims.Issuer).First(&user).Delete(&user)
+
+	cookieLogout := fiber.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Expires:  utilities.DateTimeNowAddHours(-24),
+		HTTPOnly: true,
+	}
+
+	c.Cookie(&cookieLogout)
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+	})
 }
