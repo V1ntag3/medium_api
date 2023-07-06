@@ -10,9 +10,9 @@ import (
 
 var DB *gorm.DB
 
-func Connect() {
+func Connect(database string) {
 	// connection to database
-	connection, err := gorm.Open(sqlite.Open("database.db"), &gorm.Config{})
+	connection, err := gorm.Open(sqlite.Open(database), &gorm.Config{})
 
 	if err != nil {
 		panic("Failed to connect database")

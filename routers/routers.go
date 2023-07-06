@@ -10,5 +10,6 @@ func Setup(app *fiber.App) {
 	// create routers
 
 	app.Post("/api/auth/register", controllers.Register)
+	app.Post("/api/auth/login", controllers.Login)
 
 }

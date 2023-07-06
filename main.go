@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	database.Connect()
+	database.Connect("database.db")
 
 	app := fiber.New()
 
