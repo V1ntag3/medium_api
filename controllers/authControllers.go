@@ -4,10 +4,14 @@ import (
 	"medium_api/database"
 	"medium_api/models"
 	"medium_api/utilities"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
+
+const SecretKey = "iaoiwjdaojwdoiciwoeinow"
 
 func Hello(c *fiber.Ctx) error {
 	return c.SendString("Hello World!!")
@@ -95,6 +99,35 @@ func Login(c *fiber.Ctx) error {
 			"message": "Invalid password",
 		})
 	}
+	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		Issuer:    strconv.Itoa(int(user.Id)),
+		ExpiresAt: utilities.DateTimeNowAddHoursUnix(24),
+	})
 
-	return c.JSON(user)
+	token, err := claims.SignedString([]byte(SecretKey))
+
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.Status(404).JSON(fiber.Map{
+			"message": "Could not login",
+		})
+	}
+
+	cookie := fiber.Cookie{
+		Name:     "jwt",
+		Value:    token,
+		Expires:  utilities.DateTimeNowAddHours(24),
+		HTTPOnly: true,
+	}
+
+	c.Cookie(&cookie)
+
+	return c.JSON(fiber.Map{
+		"message": "sucess",
+	})
+	// method using token
+	// return c.JSON(fiber.Map{
+	// 	"Token":      token,
+	// 	"ExpirateAt": utilities.DateTimeNowAddHours(24),
+	// })
 }
