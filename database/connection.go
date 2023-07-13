@@ -21,4 +21,6 @@ func Connect(database string) {
 	}
 	DB = connection
 	connection.AutoMigrate(&models.User{})
+	connection.AutoMigrate(&models.Articule{})
+
 }
