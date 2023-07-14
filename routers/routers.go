@@ -19,11 +19,11 @@ func Setup(app *fiber.App) {
 	// upload images
 	app.Post("/api/imageProfile", controllers.ImageProfileUpload)
 	app.Post("/api/imageWallpaper", controllers.ImageWallpaperUpload)
-	// articule
+	// article
 
-	app.Post("/api/articule/create", controllers.CreateArticule)
-	app.Get("/api/articules/my", controllers.GetAllArticulesMyUser)
-	app.Get("/api/articules/all", controllers.GetAllArticules)
-	app.Get("/api/articules/:id", controllers.GetAllArticulespScificUser)
+	app.Post("/api/article/create", controllers.CreateArticle)
+	app.Get("/api/articles/my", controllers.GetAllArticlesMyUser)
+	app.Get("/api/articles/all", controllers.GetAllArticles)
+	app.Get("/api/articles/:id", controllers.GetAllArticlespScificUser)
 
 }

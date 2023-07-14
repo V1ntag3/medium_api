@@ -63,7 +63,7 @@
 											"top": 367,
 											"width": 103,
 											"height": 13,
-											"text": "Articule"
+											"text": "Article"
 										},
 										{
 											"_type": "LabelView",
@@ -912,7 +912,7 @@
 					"_parent": {
 						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
 					},
-					"name": "Articule",
+					"name": "Article",
 					"attributes": [
 						{
 							"_type": "UMLAttribute",

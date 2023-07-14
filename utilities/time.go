@@ -1,6 +1,7 @@
 package utilities
 
 import (
+	"strings"
 	"time"
 )
 
@@ -26,4 +27,19 @@ func DateTimeNowAddHours(hours int64) time.Time {
 
 	return time.Now().Add(time.Hour * time.Duration(hours))
 
+}
+
+const (
+	// Velocidade média de leitura em palavras por minuto
+	VelocidadeLeitura = 200
+)
+
+func CalcularTempoLeitura(texto string) int {
+	// Dividir o texto em palavras
+	palavras := strings.Fields(texto)
+
+	// Calcular o tempo de leitura em minutos
+	tempoLeitura := len(palavras) / VelocidadeLeitura
+
+	return tempoLeitura
 }

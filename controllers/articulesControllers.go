@@ -1,17 +1,44 @@
 package controllers
 
 import (
+	"encoding/base64"
 	"log"
 	"medium_api/database"
 	"medium_api/models"
 	"medium_api/utilities"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 )
 
-func CreateArticule(c *fiber.Ctx) error {
+func Base64ToImage(base64String, filename string) error {
+	// Decodificar a string base64
+	data, err := base64.StdEncoding.DecodeString(base64String)
+	if err != nil {
+		return err
+	}
+
+	// Criar o arquivo de imagem
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Escrever os dados decodificados no arquivo
+	_, err = file.Write(data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateArticle(c *fiber.Ctx) error {
 	// validate user
 	cookie := c.Cookies("jwt")
 
@@ -55,21 +82,37 @@ func CreateArticule(c *fiber.Ctx) error {
 	if len(error_validation) != 0 {
 		return c.Status(400).JSON(error_validation)
 	}
-
 	// change base 64 to image
+	// parse incomming image file
+	uniqueId := uuid.New()
+
+	filename := strings.Replace(uniqueId.String(), "-", "", -1)
+
+	err = Base64ToImage(data["bannerImage"], "./uploads/articles/"+filename+".jpg")
+
+	if err != nil {
+		return c.JSON(fiber.Map{"status": 500, "message": "Error converting image to Base64 ", "data": nil})
+	}
+
+	if err != nil {
+		log.Println("image upload error --> ", err)
+		return c.JSON(fiber.Map{"status": 500, "message": "Server error", "data": nil})
+
+	}
 
 	idValue, err := strconv.ParseUint(claims.Issuer, 10, 32)
 
-	articule := models.Articule{
+	article := models.Article{
 		Title:       data["title"],
 		Subtile:     data["subtitle"],
 		Text:        data["text"],
-		BannerImage: data["bannerImage"],
+		BannerImage: "/uploads/articles/" + filename + ".jpg",
 		CreateTime:  utilities.DateTimeNow(),
+		TimeRead:    utilities.CalcularTempoLeitura(data["text"]),
 		UserId:      uint(idValue),
 	}
 
-	err_db := database.DB.Create(&articule)
+	err_db := database.DB.Create(&article)
 
 	if err_db.Error != nil {
 
@@ -81,35 +124,25 @@ func CreateArticule(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.JSON(articule)
+	return c.JSON(article)
 
 }
 
-func GetAllArticules(c *fiber.Ctx) error {
-	// validate user
-	cookie := c.Cookies("jwt")
+func GetAllArticles(c *fiber.Ctx) error {
 
-	_, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SecretKey), nil
-	})
+	// filter and send articles
+	var articles []models.Article
 
-	if err != nil {
-		c.Status(fiber.StatusUnauthorized)
-		return c.JSON(fiber.Map{
-			"message": "unauthenticated",
-		})
-	}
-	// filter and send articules
-	var articules []models.Articule
-	result := database.DB.Find(&articules)
+	// result := database.DB.Find(&articles)
+	result := database.DB.Preload("User").Find(&articles)
 	if result.Error != nil {
 		log.Fatal(result.Error)
 	}
-	return c.JSON(articules)
+	return c.JSON(articles)
 
 }
 
-func GetAllArticulespScificUser(c *fiber.Ctx) error {
+func GetAllArticlespScificUser(c *fiber.Ctx) error {
 	// validate user
 	cookie := c.Cookies("jwt")
 
@@ -124,14 +157,14 @@ func GetAllArticulespScificUser(c *fiber.Ctx) error {
 		})
 	}
 	id := c.Params("id")
-	// filter and send articules
+	// filter and send articles
 	var users models.User
-	database.DB.Model(&models.User{}).Preload("Articules").Where("id = ?", id).First(&users)
-	return c.JSON(users.Articules)
+	database.DB.Model(&models.User{}).Preload("Articles").Where("id = ?", id).First(&users)
+	return c.JSON(users.Articles)
 
 }
 
-func GetAllArticulesMyUser(c *fiber.Ctx) error {
+func GetAllArticlesMyUser(c *fiber.Ctx) error {
 	// validate user
 	cookie := c.Cookies("jwt")
 
@@ -146,9 +179,9 @@ func GetAllArticulesMyUser(c *fiber.Ctx) error {
 		})
 	}
 	claims := token.Claims.(*jwt.StandardClaims)
-	// filter and send articules
+	// filter and send articles
 	var users models.User
-	database.DB.Model(&models.User{}).Preload("Articules").Where("id = ?", claims.Issuer).First(&users)
-	return c.JSON(users.Articules)
+	database.DB.Model(&models.User{}).Preload("Articles").Where("id = ?", claims.Issuer).First(&users)
+	return c.JSON(users.Articles)
 
 }

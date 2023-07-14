@@ -13,5 +13,5 @@ type User struct {
 	ImageProfile string    `json:"imageProfile"`
 	// Follows      []User     `json:"follows"`
 	// Following    []User     `json:"followings"`
-	Articules []Articule `gorm:"foreignKey:UserId;references:Id"`
+	Articles []Article `gorm:"foreignKey:UserId;references:Id"`
 }

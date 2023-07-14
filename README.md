@@ -20,7 +20,7 @@ I put into practice the development of REST APIs in addition to learning more ab
 
 - Auth User
 - Upload Image Profile and Banner
-- Create Articules
+- Create Articles
 
 
 ## Installation
