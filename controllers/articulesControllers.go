@@ -21,7 +21,6 @@ func Base64ToImage(base64String, filename string) error {
 	if err != nil {
 		return err
 	}
-
 	// Criar o arquivo de imagem
 	file, err := os.Create(filename)
 	if err != nil {
@@ -71,6 +70,9 @@ func CreateArticle(c *fiber.Ctx) error {
 	if utilities.OnlyEmptySpaces(data["subtitle"]) {
 		error_validation["subtitle"] = "Subtitle is invalid"
 	}
+	if utilities.OnlyEmptySpaces(data["abstract"]) {
+		error_validation["abstract"] = "Abstract is invalid"
+	}
 
 	if utilities.OnlyEmptySpaces(data["text"]) {
 		error_validation["text"] = "Text is invalid"
@@ -103,12 +105,12 @@ func CreateArticle(c *fiber.Ctx) error {
 	idValue, err := strconv.ParseUint(claims.Issuer, 10, 32)
 
 	article := models.Article{
+		Abstract:    data["abstract"],
 		Title:       data["title"],
 		Subtile:     data["subtitle"],
 		Text:        data["text"],
 		BannerImage: "/uploads/articles/" + filename + ".jpg",
 		CreateTime:  utilities.DateTimeNow(),
-		TimeRead:    utilities.CalcularTempoLeitura(data["text"]),
 		UserId:      uint(idValue),
 	}
 
@@ -128,22 +130,32 @@ func CreateArticle(c *fiber.Ctx) error {
 
 }
 
-func GetAllArticles(c *fiber.Ctx) error {
+func GetAllArticlesNew(c *fiber.Ctx) error {
 
 	// filter and send articles
 	var articles []models.Article
 
-	// result := database.DB.Find(&articles)
-	result := database.DB.Preload("User").Find(&articles)
+	result := database.DB.Find(&articles)
+	// result := database.DB.Preload("User").Find(&articles)
 	if result.Error != nil {
 		log.Fatal(result.Error)
 	}
 	return c.JSON(articles)
 
 }
+func GetAllArticles(c *fiber.Ctx) error {
 
+	var articles []models.Article
+
+	database.DB.Preload("User").Find(&articles)
+	// database.DB.Table("articles").Select("*").Scan(&articles)
+
+	return c.JSON(articles)
+
+}
 func GetAllArticlespScificUser(c *fiber.Ctx) error {
 	// validate user
+
 	cookie := c.Cookies("jwt")
 
 	_, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {

@@ -71,7 +71,7 @@ func ImageProfileUpload(c *fiber.Ctx) error {
 	os.Remove("./uploads/profile/" + user.ImageProfile)
 
 	// save url image in database
-	user.ImageProfile = imageUrl
+	user.ImageProfile = "/uploads/profile/" + imageUrl
 	database.DB.Save(&user)
 	// create meta data and send to client
 	data := map[string]interface{}{
