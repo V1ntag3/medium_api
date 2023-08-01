@@ -36,11 +36,11 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 
 	if !utilities.OnlyEmptySpaces(data["surname"]) {
-		user.Name = data["surname"]
+		user.Surname = data["surname"]
 	}
 
 	if !utilities.OnlyEmptySpaces(data["about"]) {
-		user.Name = data["about"]
+		user.About = data["about"]
 	}
 
 	database.DB.Save(&user)

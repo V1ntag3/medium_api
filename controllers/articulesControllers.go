@@ -122,7 +122,6 @@ func CreateArticle(c *fiber.Ctx) error {
 
 		}
 	}
-
 	return c.JSON(article)
 
 }
