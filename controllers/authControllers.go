@@ -5,10 +5,10 @@ import (
 	"medium_api/database"
 	"medium_api/models"
 	"medium_api/utilities"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -49,6 +49,7 @@ func Register(c *fiber.Ctx) error {
 	password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
 
 	user := models.User{
+		Id:         uuid.New().String(),
 		Name:       data["name"],
 		Surname:    data["surname"],
 		Email:      data["email"],
@@ -82,7 +83,7 @@ func Login(c *fiber.Ctx) error {
 	log.Print(data)
 	var user models.User
 	database.DB.Where("email= ?", data["email"]).First(&user)
-	if user.Id == 0 {
+	if user.Id == "" {
 		return c.Status(404).JSON(fiber.Map{
 			"message": "User not found",
 		})
@@ -96,7 +97,7 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		Issuer:    strconv.Itoa(int(user.Id)),
+		Issuer:    user.Id,
 		ExpiresAt: utilities.DateTimeNowAddHoursUnix(24),
 	})
 
@@ -124,25 +125,6 @@ func Login(c *fiber.Ctx) error {
 	})
 }
 
-func Profile(c *fiber.Ctx) error {
-
-	token, err := utilities.IsAuthenticadToken(c, SecretKey)
-
-	if err != nil {
-		c.Status(fiber.StatusUnauthorized)
-		return c.JSON(fiber.Map{
-			"message": "unauthenticated",
-		})
-	}
-	claims := token.Claims.(*jwt.StandardClaims)
-
-	var user models.User
-
-	database.DB.Where("id = ?", claims.Issuer).First(&user)
-
-	return c.JSON(user)
-}
-
 func Logout(c *fiber.Ctx) error {
 
 	_, err := utilities.IsAuthenticadToken(c, SecretKey)
@@ -167,35 +149,4 @@ func Logout(c *fiber.Ctx) error {
 		"message": "success",
 	})
 
-}
-
-func Delete(c *fiber.Ctx) error {
-
-	token, err := utilities.IsAuthenticadToken(c, SecretKey)
-
-	if err != nil {
-		c.Status(fiber.StatusUnauthorized)
-		return c.JSON(fiber.Map{
-			"message": "unauthenticated",
-		})
-	}
-
-	claims := token.Claims.(*jwt.StandardClaims)
-
-	var user models.User
-
-	database.DB.Where("id = ?", claims.Issuer).First(&user).Delete(&user)
-
-	cookieLogout := fiber.Cookie{
-		Name:     "jwt",
-		Value:    "",
-		Expires:  utilities.DateTimeNowAddHours(-24),
-		HTTPOnly: true,
-	}
-
-	c.Cookie(&cookieLogout)
-
-	return c.JSON(fiber.Map{
-		"message": "success",
-	})
 }

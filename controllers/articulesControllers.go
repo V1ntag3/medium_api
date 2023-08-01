@@ -7,7 +7,6 @@ import (
 	"medium_api/models"
 	"medium_api/utilities"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -98,9 +97,10 @@ func CreateArticle(c *fiber.Ctx) error {
 
 	}
 
-	idValue, err := strconv.ParseUint(claims.Issuer, 10, 32)
+	var idValue = claims.Issuer
 
 	article := models.Article{
+		Id:          uuid.NewString(),
 		Abstract:    data["abstract"],
 		Title:       data["title"],
 		Subtile:     data["subtitle"],
@@ -108,7 +108,7 @@ func CreateArticle(c *fiber.Ctx) error {
 		BannerImage: "/uploads/articles/" + filename + ".jpg",
 		CreateTime:  utilities.DateTimeNow(),
 
-		UserId: uint(idValue),
+		UserId: idValue,
 	}
 
 	err_db := database.DB.Create(&article)

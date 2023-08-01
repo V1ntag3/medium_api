@@ -13,9 +13,13 @@ func Setup(app *fiber.App) {
 	// auth routers
 	app.Post("/api/auth/register", controllers.Register)
 	app.Post("/api/auth/login", controllers.Login)
-	app.Get("/api/auth/profile", controllers.Profile)
 	app.Post("/api/auth/logout", controllers.Logout)
-	app.Delete("/api/auth/profile", controllers.Delete)
+
+	// user
+	app.Get("/api/user/profile", controllers.Profile)
+	app.Delete("/api/user/profile", controllers.Delete)
+	app.Post("/api/user/update", controllers.UpdateUser)
+
 	// upload images
 	app.Post("/api/imageProfile", controllers.ImageProfileUpload)
 	app.Post("/api/imageWallpaper", controllers.ImageWallpaperUpload)
