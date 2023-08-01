@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"medium_api/database"
 	"medium_api/models"
 	"medium_api/utilities"
@@ -71,7 +72,6 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Login(c *fiber.Ctx) error {
-
 	var data map[string]string
 
 	err := c.BodyParser((&data))
@@ -79,7 +79,7 @@ func Login(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-
+	log.Print(data)
 	var user models.User
 	database.DB.Where("email= ?", data["email"]).First(&user)
 	if user.Id == 0 {
@@ -109,31 +109,24 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	cookie := fiber.Cookie{
-		Name:     "jwt",
-		Value:    token,
-		Expires:  utilities.DateTimeNowAddHours(24),
-		HTTPOnly: true,
-	}
+	// cookie := fiber.Cookie{
+	// 	Name:     "jwt",
+	// 	Value:    token,
+	// 	Expires:  utilities.DateTimeNowAddHours(24),
+	// 	HTTPOnly: true,
+	// }
 
-	c.Cookie(&cookie)
+	// c.Cookie(&cookie)
 
 	return c.JSON(fiber.Map{
-		"message": "sucess",
+		"token":   token,
+		"expires": utilities.DateTimeNowAddHours(24),
 	})
-	// method using token
-	// return c.JSON(fiber.Map{
-	// 	"Token":      token,
-	// 	"ExpirateAt": utilities.DateTimeNowAddHours(24),
-	// })
 }
 
 func Profile(c *fiber.Ctx) error {
-	cookie := c.Cookies("jwt")
 
-	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SecretKey), nil
-	})
+	token, err := utilities.IsAuthenticadToken(c, SecretKey)
 
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
@@ -152,11 +145,7 @@ func Profile(c *fiber.Ctx) error {
 
 func Logout(c *fiber.Ctx) error {
 
-	cookie := c.Cookies("jwt")
-
-	_, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SecretKey), nil
-	})
+	_, err := utilities.IsAuthenticadToken(c, SecretKey)
 
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
@@ -182,11 +171,7 @@ func Logout(c *fiber.Ctx) error {
 
 func Delete(c *fiber.Ctx) error {
 
-	cookie := c.Cookies("jwt")
-
-	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SecretKey), nil
-	})
+	token, err := utilities.IsAuthenticadToken(c, SecretKey)
 
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)

@@ -5,6 +5,7 @@ import (
 	"log"
 	"medium_api/database"
 	"medium_api/models"
+	"medium_api/utilities"
 	"os"
 	"strings"
 
@@ -14,12 +15,8 @@ import (
 )
 
 func ImageProfileUpload(c *fiber.Ctx) error {
-	// validate user
-	cookie := c.Cookies("jwt")
 
-	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SecretKey), nil
-	})
+	token, err := utilities.IsAuthenticadToken(c, SecretKey)
 
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
@@ -100,11 +97,7 @@ func ImageProfileUpload(c *fiber.Ctx) error {
 // }
 func ImageWallpaperUpload(c *fiber.Ctx) error {
 	// validate user
-	cookie := c.Cookies("jwt")
-
-	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SecretKey), nil
-	})
+	token, err := utilities.IsAuthenticadToken(c, SecretKey)
 
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)

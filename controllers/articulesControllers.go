@@ -38,12 +38,8 @@ func Base64ToImage(base64String, filename string) error {
 }
 
 func CreateArticle(c *fiber.Ctx) error {
-	// validate user
-	cookie := c.Cookies("jwt")
 
-	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SecretKey), nil
-	})
+	token, err := utilities.IsAuthenticadToken(c, SecretKey)
 
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
@@ -111,7 +107,8 @@ func CreateArticle(c *fiber.Ctx) error {
 		Text:        data["text"],
 		BannerImage: "/uploads/articles/" + filename + ".jpg",
 		CreateTime:  utilities.DateTimeNow(),
-		UserId:      uint(idValue),
+
+		UserId: uint(idValue),
 	}
 
 	err_db := database.DB.Create(&article)
@@ -130,19 +127,6 @@ func CreateArticle(c *fiber.Ctx) error {
 
 }
 
-func GetAllArticlesNew(c *fiber.Ctx) error {
-
-	// filter and send articles
-	var articles []models.Article
-
-	result := database.DB.Find(&articles)
-	// result := database.DB.Preload("User").Find(&articles)
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-	return c.JSON(articles)
-
-}
 func GetAllArticles(c *fiber.Ctx) error {
 
 	var articles []models.Article
@@ -154,20 +138,7 @@ func GetAllArticles(c *fiber.Ctx) error {
 
 }
 func GetAllArticlespScificUser(c *fiber.Ctx) error {
-	// validate user
 
-	cookie := c.Cookies("jwt")
-
-	_, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SecretKey), nil
-	})
-
-	if err != nil {
-		c.Status(fiber.StatusUnauthorized)
-		return c.JSON(fiber.Map{
-			"message": "unauthenticated",
-		})
-	}
 	id := c.Params("id")
 	// filter and send articles
 	var users models.User
@@ -177,12 +148,8 @@ func GetAllArticlespScificUser(c *fiber.Ctx) error {
 }
 
 func GetAllArticlesMyUser(c *fiber.Ctx) error {
-	// validate user
-	cookie := c.Cookies("jwt")
 
-	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SecretKey), nil
-	})
+	token, err := utilities.IsAuthenticadToken(c, SecretKey)
 
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
