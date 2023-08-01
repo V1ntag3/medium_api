@@ -118,7 +118,7 @@ func Login(c *fiber.Ctx) error {
 	// }
 
 	// c.Cookie(&cookie)
-
+	utilities.AuthorizedToken(token)
 	return c.JSON(fiber.Map{
 		"token":   token,
 		"expires": utilities.DateTimeNowAddHours(24),
@@ -127,7 +127,7 @@ func Login(c *fiber.Ctx) error {
 
 func Logout(c *fiber.Ctx) error {
 
-	_, err := utilities.IsAuthenticadToken(c, SecretKey)
+	token, err := utilities.IsAuthenticadToken(c, SecretKey)
 
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
@@ -135,15 +135,16 @@ func Logout(c *fiber.Ctx) error {
 			"message": "unauthenticated",
 		})
 	}
+	utilities.UnauthorizedToken(token.Raw)
 
-	cookieLogout := fiber.Cookie{
-		Name:     "jwt",
-		Value:    "",
-		Expires:  utilities.DateTimeNowAddHours(-24),
-		HTTPOnly: true,
-	}
+	// cookieLogout := fiber.Cookie{
+	// 	Name:     "jwt",
+	// 	Value:    "",
+	// 	Expires:  utilities.DateTimeNowAddHours(-24),
+	// 	HTTPOnly: true,
+	// }
 
-	c.Cookie(&cookieLogout)
+	// c.Cookie(&cookieLogout)
 
 	return c.JSON(fiber.Map{
 		"message": "success",

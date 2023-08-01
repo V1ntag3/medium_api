@@ -31,9 +31,9 @@ func IsAuthenticadToken(c *fiber.Ctx, SecretKey string) (*jwt.Token, error) {
 	}
 	reqToken = splitToken[1]
 
-	// if (controllers.IsTokenRevoked(reqToken)){
-	// 	return nil, errors.New("unauthorized")
-	// }
+	if !IsAuthorizedToken(reqToken) {
+		return nil, errors.New("unauthorized")
+	}
 
 	token, err := jwt.ParseWithClaims(reqToken, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(SecretKey), nil
