@@ -13,7 +13,7 @@ type User struct {
 	DateMember   time.Time `json:"timeMember"`
 	ImageProfile string    `json:"imageProfile"`
 	Followers    []*User   `gorm:"many2many:user_followers;joinForeignKey:follower_id;joinReferences:user_id" json:"followers"`
-	Following    []*User   `gorm:"many2many:user_followers;joinForeignKey:user_id;joinReferences:follower_id" json:"following"`
+	Followings   []*User   `gorm:"many2many:user_followers;joinForeignKey:user_id;joinReferences:follower_id" json:"following"`
 	Articles     []Article `gorm:"foreignKey:UserId;references:Id"`
 }
 

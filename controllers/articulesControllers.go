@@ -84,8 +84,7 @@ func CreateArticle(c *fiber.Ctx) error {
 		Text:        data["text"],
 		BannerImage: "/uploads/articles/" + filename + ".jpg",
 		CreateTime:  utilities.DateTimeNow(),
-
-		UserId: idValue,
+		UserId:      idValue,
 	}
 
 	err_db := database.DB.Create(&article)
