@@ -1,40 +1,17 @@
 package controllers
 
 import (
-	"encoding/base64"
 	"log"
 	"medium_api/database"
 	"medium_api/models"
 	"medium_api/utilities"
-	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
-
-func Base64ToImage(base64String, filename string) error {
-	// Decodificar a string base64
-	data, err := base64.StdEncoding.DecodeString(base64String)
-	if err != nil {
-		return err
-	}
-	// Criar o arquivo de imagem
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Escrever os dados decodificados no arquivo
-	_, err = file.Write(data)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func CreateArticle(c *fiber.Ctx) error {
 
@@ -85,7 +62,7 @@ func CreateArticle(c *fiber.Ctx) error {
 
 	filename := strings.Replace(uniqueId.String(), "-", "", -1)
 
-	err = Base64ToImage(data["bannerImage"], "./uploads/articles/"+filename+".jpg")
+	err = utilities.Base64ToImage(data["bannerImage"], "./uploads/articles/"+filename+".jpg")
 
 	if err != nil {
 		return c.JSON(fiber.Map{"status": 500, "message": "Error converting image to Base64 ", "data": nil})
@@ -126,30 +103,36 @@ func CreateArticle(c *fiber.Ctx) error {
 
 }
 
+// Return all articules with page and limit
 func GetAllArticles(c *fiber.Ctx) error {
+	// used in filter
+	pageNumber, _ := strconv.Atoi(c.Query("page", "1"))
+	limitNumber, _ := strconv.Atoi(c.Query("limit", "10"))
+	offset := (pageNumber - 1) * limitNumber
 
 	var articles []models.Article
 
-	database.DB.Preload("User").Find(&articles)
-	// database.DB.Table("articles").Select("*").Scan(&articles)
+	if err := database.DB.Offset(offset).Limit(limitNumber).Find(&articles).Error; err != nil {
+		return fiber.ErrInternalServerError
+	}
 
 	return c.JSON(articles)
 
 }
+
 func GetAllArticlespScificUser(c *fiber.Ctx) error {
 
-	id := c.Params("id")
-	// filter and send articles
 	var users models.User
-	database.DB.Model(&models.User{}).Preload("Articles").Where("id = ?", id).First(&users)
+	database.DB.Model(&models.User{}).Preload("Articles").Where("id = ?", c.Params("id")).First(&users)
+
 	return c.JSON(users.Articles)
 
 }
 
 func GetAllArticlesMyUser(c *fiber.Ctx) error {
 
+	// if user is authenticad this method rescue token
 	token, err := utilities.IsAuthenticadToken(c, SecretKey)
-
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
 		return c.JSON(fiber.Map{
@@ -157,9 +140,11 @@ func GetAllArticlesMyUser(c *fiber.Ctx) error {
 		})
 	}
 	claims := token.Claims.(*jwt.StandardClaims)
+
 	// filter and send articles
 	var users models.User
 	database.DB.Model(&models.User{}).Preload("Articles").Where("id = ?", claims.Issuer).First(&users)
+
 	return c.JSON(users.Articles)
 
 }

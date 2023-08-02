@@ -2,6 +2,7 @@ package models
 
 import "time"
 
+// Articles table
 type Article struct {
 	Id          string    `json:"id"`
 	Abstract    string    `gorm:"not null" json:"abstract"`

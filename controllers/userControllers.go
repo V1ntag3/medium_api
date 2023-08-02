@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+// Update name, surname and about
 func UpdateUser(c *fiber.Ctx) error {
 	token, err := utilities.IsAuthenticadToken(c, SecretKey)
 
@@ -22,15 +23,15 @@ func UpdateUser(c *fiber.Ctx) error {
 
 	var data map[string]string
 	// recue databody
-	err = c.BodyParser((&data))
 
-	if err != nil {
+	if err = c.BodyParser(&data); err != nil {
 		return err
 	}
 
 	var user models.User
 
 	database.DB.Where("id = ?", claims.Issuer).First(&user)
+
 	if !utilities.OnlyEmptySpaces(data["name"]) {
 		user.Name = data["name"]
 	}
@@ -97,22 +98,20 @@ func Delete(c *fiber.Ctx) error {
 		"message": "success",
 	})
 }
-func Followers(c *fiber.Ctx) error {
-	var user models.User
-	if err := database.DB.First(&user, c.Params("id")).Error; err != nil {
-		return fiber.ErrNotFound
-	}
-	database.DB.Model(&user).Association("Followers").Find(&user.Followers)
-	return c.JSON(user.Followers)
-}
-
 func Following(c *fiber.Ctx) error {
 	var user models.User
-	if err := database.DB.First(&user, c.Params("id")).Error; err != nil {
+	if err := database.DB.Preload("Following").First(&user, "id = ?", c.Params("id")).Error; err != nil {
 		return fiber.ErrNotFound
 	}
-	database.DB.Model(&user).Association("Following").Find(&user.Following)
 	return c.JSON(user.Following)
+}
+
+func Followers(c *fiber.Ctx) error {
+	var user models.User
+	if err := database.DB.Preload("Followers").First(&user, "id = ?", c.Params("id")).Error; err != nil {
+		return fiber.ErrNotFound
+	}
+	return c.JSON(user.Followers)
 }
 
 func Follow(c *fiber.Ctx) error {

@@ -23,6 +23,6 @@ func Connect(database string) {
 	connection.AutoMigrate(&models.UserFollower{})
 	connection.AutoMigrate(&models.User{})
 	connection.AutoMigrate(&models.Article{})
-	connection.AutoMigrate(&models.RevokedToken{})
+	connection.AutoMigrate(&models.ValidToken{})
 
 }

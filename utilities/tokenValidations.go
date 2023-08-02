@@ -8,7 +8,7 @@ import (
 // Função para remover um token
 func UnauthorizedToken(token string) {
 
-	var revokeToken models.RevokedToken
+	var revokeToken models.ValidToken
 
 	revokeToken.Token = token
 
@@ -19,7 +19,7 @@ func UnauthorizedToken(token string) {
 // Função para cadastrar um token valido
 func AuthorizedToken(token string) {
 
-	var revokeToken models.RevokedToken
+	var revokeToken models.ValidToken
 
 	revokeToken.Token = token
 
@@ -30,14 +30,14 @@ func AuthorizedToken(token string) {
 // Função para verificar se um token está revogado
 func IsAuthorizedToken(token string) bool {
 
-	var revokedToken models.RevokedToken
+	var ValidToken models.ValidToken
 
-	database.DB.Where("token = ?", token).First(&revokedToken)
-	if revokedToken.Token == token {
+	database.DB.Where("token = ?", token).First(&ValidToken)
+	if ValidToken.Token == token {
 		// O token está na tabela
 		return true
 	}
-	print(revokedToken.Token)
+	print(ValidToken.Token)
 	// O token não esta na tabela
 	return false
 }
