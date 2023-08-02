@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"medium_api/database"
 	"medium_api/models"
 	"medium_api/utilities"
@@ -13,6 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Create Article
 func CreateArticle(c *fiber.Ctx) error {
 
 	token, err := utilities.IsAuthenticadToken(c, SecretKey)
@@ -23,15 +23,15 @@ func CreateArticle(c *fiber.Ctx) error {
 			"message": "unauthenticated",
 		})
 	}
+
 	claims := token.Claims.(*jwt.StandardClaims)
 
 	var data map[string]string
-	// recue databody
-	err = c.BodyParser((&data))
 
-	if err != nil {
-		return err
+	if err := c.BodyParser(&data); err != nil {
+		return fiber.ErrInternalServerError
 	}
+
 	// validation data
 	error_validation := make(map[string]string)
 
@@ -53,6 +53,7 @@ func CreateArticle(c *fiber.Ctx) error {
 	if utilities.OnlyEmptySpaces(data["bannerImage"]) {
 		error_validation["bannerImage"] = "Image is invalid"
 	}
+
 	if len(error_validation) != 0 {
 		return c.Status(400).JSON(error_validation)
 	}
@@ -62,16 +63,8 @@ func CreateArticle(c *fiber.Ctx) error {
 
 	filename := strings.Replace(uniqueId.String(), "-", "", -1)
 
-	err = utilities.Base64ToImage(data["bannerImage"], "./uploads/articles/"+filename+".jpg")
-
-	if err != nil {
+	if err := utilities.Base64ToImage(data["bannerImage"], "./uploads/articles/"+filename+".jpg"); err != nil {
 		return c.JSON(fiber.Map{"status": 500, "message": "Error converting image to Base64 ", "data": nil})
-	}
-
-	if err != nil {
-		log.Println("image upload error --> ", err)
-		return c.JSON(fiber.Map{"status": 500, "message": "Server error", "data": nil})
-
 	}
 
 	var idValue = claims.Issuer
@@ -87,19 +80,11 @@ func CreateArticle(c *fiber.Ctx) error {
 		UserId:      idValue,
 	}
 
-	err_db := database.DB.Create(&article)
-
-	if err_db.Error != nil {
-
-		if err_db.Error.Error() == "UNIQUE constraint failed: users.email" {
-
-			error_validation["email"] = "E-mail already registered"
-			return c.Status(400).JSON(error_validation)
-
-		}
+	if err := database.DB.Create(&article).Error; err != nil {
+		return c.Status(400).JSON(error_validation)
 	}
-	return c.JSON(article)
 
+	return c.JSON(article)
 }
 
 // Return all articules with page and limit
@@ -119,15 +104,20 @@ func GetAllArticles(c *fiber.Ctx) error {
 
 }
 
-func GetAllArticlespScificUser(c *fiber.Ctx) error {
+// Return all articules of scpecifc user
+func GetAllArticlespSpecificUser(c *fiber.Ctx) error {
 
 	var users models.User
-	database.DB.Model(&models.User{}).Preload("Articles").Where("id = ?", c.Params("id")).First(&users)
+
+	if err := database.DB.Model(&models.User{}).Preload("Articles").Where("id = ?", c.Params("id")).First(&users).Error; err != nil {
+		return fiber.ErrInternalServerError
+	}
 
 	return c.JSON(users.Articles)
 
 }
 
+// Return all articules of my user
 func GetAllArticlesMyUser(c *fiber.Ctx) error {
 
 	// if user is authenticad this method rescue token
@@ -142,7 +132,9 @@ func GetAllArticlesMyUser(c *fiber.Ctx) error {
 
 	// filter and send articles
 	var users models.User
-	database.DB.Model(&models.User{}).Preload("Articles").Where("id = ?", claims.Issuer).First(&users)
+	if err := database.DB.Model(&models.User{}).Preload("Articles").Where("id = ?", claims.Issuer).First(&users).Error; err != nil {
+		return fiber.ErrInternalServerError
+	}
 
 	return c.JSON(users.Articles)
 

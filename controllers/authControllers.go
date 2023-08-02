@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"medium_api/database"
 	"medium_api/models"
 	"medium_api/utilities"
@@ -17,10 +16,8 @@ const SecretKey = "iaoiwjdaojwdoiciwoeinow"
 func Register(c *fiber.Ctx) error {
 
 	var data map[string]string
-	// recue databody
-	err := c.BodyParser((&data))
 
-	if err != nil {
+	if err := c.BodyParser(&data); err != nil {
 		return err
 	}
 	// validation data
@@ -57,15 +54,10 @@ func Register(c *fiber.Ctx) error {
 		DateMember: utilities.DateTimeNow(),
 	}
 
-	err_db := database.DB.Create(&user)
-
-	if err_db.Error != nil {
-
-		if err_db.Error.Error() == "UNIQUE constraint failed: users.email" {
-
+	if err := database.DB.Create(&user).Error; err != nil {
+		if err.Error() == "UNIQUE constraint failed: users.email" {
 			error_validation["email"] = "E-mail already registered"
 			return c.Status(400).JSON(error_validation)
-
 		}
 	}
 
@@ -73,29 +65,27 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Login(c *fiber.Ctx) error {
+
 	var data map[string]string
 
-	err := c.BodyParser((&data))
-
-	if err != nil {
-		return err
+	if err := c.BodyParser(&data); err != nil {
+		return fiber.ErrInternalServerError
 	}
-	log.Print(data)
+
 	var user models.User
-	database.DB.Where("email= ?", data["email"]).First(&user)
-	if user.Id == "" {
+
+	if err := database.DB.Where("email= ?", data["email"]).First(&user).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{
 			"message": "User not found",
 		})
 	}
 
-	err = bcrypt.CompareHashAndPassword(user.Password, []byte(data["password"]))
-	if err != nil {
-
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(data["password"])); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid password",
 		})
 	}
+
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		Issuer:    user.Id,
 		ExpiresAt: utilities.DateTimeNowAddHoursUnix(24),
