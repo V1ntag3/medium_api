@@ -20,6 +20,7 @@ func Connect(database string) {
 		log.Println("Database connected")
 	}
 	DB = connection
+	connection.AutoMigrate(&models.UserFollower{})
 	connection.AutoMigrate(&models.User{})
 	connection.AutoMigrate(&models.Article{})
 	connection.AutoMigrate(&models.RevokedToken{})

@@ -11,7 +11,12 @@ type User struct {
 	Password     []byte    `gorm:"not null" json:"-"`
 	DateMember   time.Time `json:"timeMember"`
 	ImageProfile string    `json:"imageProfile"`
-	// Follows      []User     `json:"follows"`
-	// Following    []User     `json:"followings"`
-	Articles []Article `gorm:"foreignKey:UserId;references:Id"`
+	Followers    []*User   `gorm:"many2many:user_followers;joinForeignKey:follower_id;" json:"followers"`
+	Following    []*User   `gorm:"many2many:user_followers;joinForeignKey:user_id;" json:"following"`
+	Articles     []Article `gorm:"foreignKey:UserId;references:Id"`
+}
+
+type UserFollower struct {
+	UserID     string `gorm:"primaryKey"`
+	FollowerID string `gorm:"primaryKey"`
 }
