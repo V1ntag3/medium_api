@@ -32,5 +32,6 @@ func Setup(app *fiber.App) {
 	app.Get("/api/articles/all", controllers.GetAllArticles)
 	app.Get("/api/articles/:id", controllers.GetAllArticlespSpecificUser)
 	app.Get("/api/articles/article/:id", controllers.GetArticle)
+	app.Delete("/api/articles/:id", controllers.DeleteArticle)
 
 }

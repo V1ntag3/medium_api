@@ -160,3 +160,28 @@ func GetArticle(c *fiber.Ctx) error {
 	return c.JSON(article)
 
 }
+
+// Return pne article
+func DeleteArticle(c *fiber.Ctx) error {
+
+	// if user is authenticad this method rescue token
+	token, err := utilities.IsAuthenticadToken(c, SecretKey)
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+	claims := token.Claims.(*jwt.StandardClaims)
+
+	var article models.Article
+
+	if err := database.DB.Where("id = ? and user_id = ?", c.Params("id"), claims.Issuer).First(&article).Delete(&article).Error; err != nil {
+		return fiber.ErrInternalServerError
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "article delete",
+	})
+
+}

@@ -58,14 +58,14 @@ func Profile(c *fiber.Ctx) error {
 // User data by id
 func UserDataById(c *fiber.Ctx) error {
 
-	_, err := utilities.IsAuthenticadToken(c, SecretKey)
+	// _, err := utilities.IsAuthenticadToken(c, SecretKey)
 
-	if err != nil {
-		c.Status(fiber.StatusUnauthorized)
-		return c.JSON(fiber.Map{
-			"message": "unauthenticated",
-		})
-	}
+	// if err != nil {
+	// 	c.Status(fiber.StatusUnauthorized)
+	// 	return c.JSON(fiber.Map{
+	// 		"message": "unauthenticated",
+	// 	})
+	// }
 
 	var user models.User
 
