@@ -16,6 +16,7 @@ func Setup(app *fiber.App) {
 	app.Post("/api/auth/logout", controllers.Logout)
 	// user
 	app.Get("/api/user/profile", controllers.Profile)
+	app.Get("/api/user/profile/:id", controllers.UserDataById)
 	app.Delete("/api/user/profile", controllers.Delete)
 	app.Post("/api/user/update", controllers.UpdateUser)
 	app.Get("/api/user/:id/following", controllers.Following)
@@ -30,5 +31,6 @@ func Setup(app *fiber.App) {
 	app.Get("/api/articles/my", controllers.GetAllArticlesMyUser)
 	app.Get("/api/articles/all", controllers.GetAllArticles)
 	app.Get("/api/articles/:id", controllers.GetAllArticlespSpecificUser)
+	app.Get("/api/articles/article/:id", controllers.GetArticle)
 
 }

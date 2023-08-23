@@ -96,7 +96,7 @@ func GetAllArticles(c *fiber.Ctx) error {
 
 	var articles []models.Article
 
-	if err := database.DB.Offset(offset).Limit(limitNumber).Find(&articles).Error; err != nil {
+	if err := database.DB.Offset(offset).Limit(limitNumber).Preload("User").Find(&articles).Error; err != nil {
 		return fiber.ErrInternalServerError
 	}
 
@@ -107,13 +107,18 @@ func GetAllArticles(c *fiber.Ctx) error {
 // Return all articules of scpecifc user
 func GetAllArticlespSpecificUser(c *fiber.Ctx) error {
 
-	var users models.User
+	pageNumber, _ := strconv.Atoi(c.Query("page", "1"))
+	limitNumber, _ := strconv.Atoi(c.Query("limit", "10"))
+	offset := (pageNumber - 1) * limitNumber
 
-	if err := database.DB.Model(&models.User{}).Preload("Articles").Where("id = ?", c.Params("id")).First(&users).Error; err != nil {
+	var articles []models.Article
+
+	db := database.DB.Preload("User").Offset(offset).Limit(limitNumber)
+
+	if err := db.Where("user_id = ?", c.Params("id")).Find(&articles).Error; err != nil {
 		return fiber.ErrInternalServerError
 	}
-
-	return c.JSON(users.Articles)
+	return c.JSON(articles)
 
 }
 
@@ -136,6 +141,22 @@ func GetAllArticlesMyUser(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	return c.JSON(users.Articles)
+	return c.JSON(fiber.Map{
+		"articles":      users.Articles,
+		"image_profile": users.ImageProfile,
+		"name":          users.Name,
+	})
+}
+
+// Return pne article
+func GetArticle(c *fiber.Ctx) error {
+
+	var article models.Article
+
+	if err := database.DB.Where("id = ?", c.Params("id")).First(&article).Error; err != nil {
+		return fiber.ErrInternalServerError
+	}
+
+	return c.JSON(article)
 
 }

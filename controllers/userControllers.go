@@ -55,6 +55,50 @@ func Profile(c *fiber.Ctx) error {
 	return c.JSON(data)
 }
 
+// User data by id
+func UserDataById(c *fiber.Ctx) error {
+
+	_, err := utilities.IsAuthenticadToken(c, SecretKey)
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+
+	var user models.User
+
+	if err := database.DB.Select("id, name, surname, about, date_member, email, image_profile").Where("id = ?", c.Params("id")).First(&user).Error; err != nil {
+		return fiber.ErrNotFound
+	}
+
+	var followingsCount int64
+	var followersCount int64
+
+	if err := database.DB.Model(&models.UserFollower{}).Where("follower_id = ?", user.Id).Count(&followersCount).Error; err != nil {
+		return fiber.ErrNotFound
+	}
+
+	if err := database.DB.Model(&models.UserFollower{}).Where("user_id = ?", user.Id).Count(&followingsCount).Error; err != nil {
+		return fiber.ErrNotFound
+	}
+
+	data := map[string]interface{}{
+		"id":            user.Id,
+		"name":          user.Name,
+		"surname":       user.Surname,
+		"email":         user.Email,
+		"dateMember":    user.DateMember,
+		"about":         user.About,
+		"image_profile": user.ImageProfile,
+		"followers":     followersCount,
+		"followings":    followingsCount,
+	}
+
+	return c.JSON(data)
+}
+
 // Update name, surname and about
 func UpdateUser(c *fiber.Ctx) error {
 
