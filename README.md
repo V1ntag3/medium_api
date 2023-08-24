@@ -1,5 +1,5 @@
 
-# Medium Clone
+# NewMedium - A Medium Clone API
 
 
 This project is a clone of the https://medium.com article site where users can post articles on a wide range of subjects
@@ -9,6 +9,9 @@ This project is a clone of the https://medium.com article site where users can p
 
 Documentation API: https://marcos-team.postman.co/workspace/4927b179-fda5-47d3-b94c-14c71518e289/documentation/17463653-e3d2ac4f-a213-4357-8ddc-a0bb9dc8035f
 
+## Front End
+
+https://github.com/V1ntag3/medium_clone_front
 
 ## Lessons Learned
 
@@ -19,10 +22,21 @@ I put into practice the development of REST APIs in addition to learning more ab
 ## Features
 
 - Auth User
+  - Login
+  - Register
+  - Logout
+- User
+  - Updade user data
+  - Delete user
+  - Follow user
+  - UnFollow user
+  - List Followings
+  - List Followers
 - Upload Image Profile and Banner
-- Create Articles
-- Delete Articles
-
+- Articles
+  - List Articles
+  - Create Articles
+  - Delete Articles
 
 
 ## Installation
