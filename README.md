@@ -46,10 +46,24 @@ Install Golang and run this command in terminal
 ```bash
   go run main.go
 ```
-    
+
+### Alert
+
+Change the secret key than generate the user token
+
+. \
+├── controllers \
+│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── authControllers.go
+ 
+```javascript
+const SecretKey = "newSecretKey"
+```
+
+
 ## Tech Stack
 
 **Server:** Golang, SQLite3, GORM, Fiber
+
 ## License
 
 MIT License

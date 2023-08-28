@@ -3,4 +3,6 @@ uploads/articles/*
 uploads/profile/*
 uploads/wallpaper/*
 
+test/db_test.db
+
 database.db
